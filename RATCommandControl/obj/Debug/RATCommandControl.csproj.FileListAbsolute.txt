@@ -1,0 +1,6 @@
+c:\users\zaine\documents\visual studio 2015\Projects\RATCommandControl\RATCommandControl\bin\Debug\RATCommandControl.exe.config
+c:\users\zaine\documents\visual studio 2015\Projects\RATCommandControl\RATCommandControl\bin\Debug\RATCommandControl.exe
+c:\users\zaine\documents\visual studio 2015\Projects\RATCommandControl\RATCommandControl\bin\Debug\RATCommandControl.pdb
+c:\users\zaine\documents\visual studio 2015\Projects\RATCommandControl\RATCommandControl\obj\Debug\RATCommandControl.csprojResolveAssemblyReference.cache
+c:\users\zaine\documents\visual studio 2015\Projects\RATCommandControl\RATCommandControl\obj\Debug\RATCommandControl.exe
+c:\users\zaine\documents\visual studio 2015\Projects\RATCommandControl\RATCommandControl\obj\Debug\RATCommandControl.pdb
