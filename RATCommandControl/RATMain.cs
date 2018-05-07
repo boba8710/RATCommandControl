@@ -46,7 +46,8 @@ namespace RATCommandControl
                 {
                     connectedEndPoints.Add(handler.RemoteEndPoint);//Add this new client to our list of clients
                     associatedHandlers.Add(handler);
-                    Console.WriteLine("Alert! New Endpoint: " + handler.RemoteEndPoint.ToString());
+                    IPEndPoint selectedIPEndpoint = handler.RemoteEndPoint as IPEndPoint;
+                    Console.WriteLine("Alert! New Endpoint: " + selectedIPEndpoint.Address.MapToIPv4().ToString()+":"+selectedIPEndpoint.Port.ToString());
                     replyString += (char)6; //Reply with a single ACK
                     
                 }
@@ -110,7 +111,8 @@ namespace RATCommandControl
                         String[] hostcmd = commandString.Split(' ');
                         int id = int.Parse(hostcmd[1]);
                         selectedEndpoint = connectedEndPoints[id];
-                        currentEndpointString = "[" + connectedEndPoints.IndexOf(selectedEndpoint) + "] " + selectedEndpoint.ToString();
+                        IPEndPoint selectedIPEndpoint = selectedEndpoint as IPEndPoint;
+                        currentEndpointString = "[" + connectedEndPoints.IndexOf(selectedEndpoint) + "] " + selectedIPEndpoint.Address.MapToIPv4().ToString();
                     }
                     catch(Exception e)
                     {
