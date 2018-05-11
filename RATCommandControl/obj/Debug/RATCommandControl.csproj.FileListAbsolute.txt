@@ -4,3 +4,10 @@ c:\users\zaine\documents\visual studio 2015\Projects\RATCommandControl\RATComman
 c:\users\zaine\documents\visual studio 2015\Projects\RATCommandControl\RATCommandControl\obj\Debug\RATCommandControl.csprojResolveAssemblyReference.cache
 c:\users\zaine\documents\visual studio 2015\Projects\RATCommandControl\RATCommandControl\obj\Debug\RATCommandControl.exe
 c:\users\zaine\documents\visual studio 2015\Projects\RATCommandControl\RATCommandControl\obj\Debug\RATCommandControl.pdb
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATCommandControl\RATCommandControl\RATCommandControl\bin\Debug\RATCommandControl.exe.config
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATCommandControl\RATCommandControl\RATCommandControl\bin\Debug\RATCommandControl.exe
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATCommandControl\RATCommandControl\RATCommandControl\bin\Debug\RATCommandControl.pdb
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATCommandControl\RATCommandControl\RATCommandControl\obj\Debug\RATCommandControl.csprojResolveAssemblyReference.cache
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATCommandControl\RATCommandControl\RATCommandControl\obj\Debug\RATCommandControl.csproj.CoreCompileInputs.cache
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATCommandControl\RATCommandControl\RATCommandControl\obj\Debug\RATCommandControl.exe
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATCommandControl\RATCommandControl\RATCommandControl\obj\Debug\RATCommandControl.pdb
